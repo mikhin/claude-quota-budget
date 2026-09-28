@@ -50,6 +50,21 @@ Over budget exits `2`, which is how a `UserPromptSubmit` hook blocks the prompt.
 
 Day 3 of the week means 43% is fine and 60% is not — the block is on the pace, not the total.
 
+## Status line
+
+`--status` prints the same numbers for the Claude Code status line — spent of the week against
+today's budget, red when over:
+
+```
+Fable 70/100%
+```
+
+```json
+{ "statusLine": { "type": "command", "command": "node ~/.claude/hooks/quota-budget.mjs --status" } }
+```
+
+It shows whatever model is selected and shares the 5-minute cache with the hook.
+
 ## Caveats
 
 - `/api/oauth/usage` is not a documented API. It can change or disappear without notice.
