@@ -6,7 +6,7 @@ usage runs ahead of `1/7` per day.
 Existing usage tools show what you have spent. This one stops you from spending it all on Monday.
 
 ```
-Fable: 100% of the week spent, budget for day 7/7 is 0%. Switch: /model opus
+Fable: 80% of the week spent, budget for day 5/7 is 71%. Switch: /model opus
 ```
 
 ## Install
