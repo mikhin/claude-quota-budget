@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // UserPromptSubmit hook: blocks the prompt when a weekly model quota runs ahead of 1/7 per day.
-// With --status, prints spent/budget for the status line instead.
+// With --status, prints what is left of today's budget for the status line instead.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -73,8 +73,10 @@ async function todayPace() {
 }
 
 function statusText({ percent, budget }) {
-  const text = `${LIMIT_NAME} ${percent}/${budget.toFixed(0)}%`;
-  return percent > budget ? `\x1b[31m${text}\x1b[0m` : text;
+  const left = budget - percent;
+  return left < 0
+    ? `\x1b[31m${LIMIT_NAME} ${Math.round(-left)}% over today\x1b[0m`
+    : `${LIMIT_NAME} ${Math.round(left)}% left today`;
 }
 
 async function main() {
@@ -100,8 +102,8 @@ if (process.argv[2] === "--test") {
   assert.deepEqual(budgetFor(reset, new Date("2026-09-15T03:01:00Z")), { day: 1, budget: DAILY });
   assert.equal(budgetFor(reset, new Date("2026-09-19T18:00:00Z")).day, 5);
   assert.deepEqual(budgetFor(reset, new Date("2026-09-22T02:59:00Z")), { day: 7, budget: 100 });
-  assert.equal(statusText({ percent: 70, budget: 100 }), `${LIMIT_NAME} 70/100%`);
-  assert.equal(statusText({ percent: 30, budget: 28.6 }), `\x1b[31m${LIMIT_NAME} 30/29%\x1b[0m`);
+  assert.equal(statusText({ percent: 70, budget: 100 }), `${LIMIT_NAME} 30% left today`);
+  assert.equal(statusText({ percent: 30, budget: 28.6 }), `\x1b[31m${LIMIT_NAME} 1% over today\x1b[0m`);
   console.log("ok");
 } else {
   // fail open: a broken hook must not lock Claude out

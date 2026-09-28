@@ -52,11 +52,12 @@ Day 3 of the week means 43% is fine and 60% is not — the block is on the pace,
 
 ## Status line
 
-`--status` prints the same numbers for the Claude Code status line — spent of the week against
-today's budget, red when over:
+`--status` prints what is left of today's budget for the Claude Code status line — how much you can
+spend before the hook blocks. Unspent budget from earlier days carries over. Over budget turns red:
 
 ```
-Fable 70/100%
+Fable 30% left today
+Fable 5% over today
 ```
 
 ```json
