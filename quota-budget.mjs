@@ -60,23 +60,26 @@ const weeklyLimit = (data) =>
     (limit) => limit.kind === "weekly_scoped" && limit.scope?.model?.display_name === LIMIT_NAME,
   );
 
+const weeklyAllLimit = (data) => data.limits.find((limit) => limit.kind === "weekly_all");
+
 function budgetFor(resetsAt, now) {
   const remainingDays = (resetsAt - now) / 86_400_000;
   const day = Math.max(1, 7 - Math.floor(remainingDays));
   return { day, budget: Math.min(100, day * DAILY) };
 }
 
+const paceOf = (limit) =>
+  limit && { percent: limit.percent, ...budgetFor(new Date(limit.resets_at), new Date()) };
+
 async function todayPace() {
-  const limit = weeklyLimit(await usage());
-  if (!limit) return null;
-  return { percent: limit.percent, ...budgetFor(new Date(limit.resets_at), new Date()) };
+  return paceOf(weeklyLimit(await usage()));
 }
 
-function statusText({ percent, budget }) {
+function statusText(name, { percent, budget }) {
   const left = budget - percent;
   return left < 0
-    ? `\x1b[31m${LIMIT_NAME} ${Math.round(-left)}% over today\x1b[0m`
-    : `${LIMIT_NAME} ${Math.round(left)}% left today`;
+    ? `\x1b[31m${name} ${Math.round(-left)}% over today\x1b[0m`
+    : `${name} ${Math.round(left)}% left today`;
 }
 
 async function main() {
@@ -93,8 +96,14 @@ async function main() {
 }
 
 async function status() {
-  const pace = await todayPace();
-  if (pace) console.log(statusText(pace));
+  const data = await usage();
+  const parts = [
+    [LIMIT_NAME, weeklyLimit(data)],
+    ["All", weeklyAllLimit(data)],
+  ]
+    .filter(([, limit]) => limit)
+    .map(([name, limit]) => statusText(name, paceOf(limit)));
+  if (parts.length) console.log(parts.join(" · "));
 }
 
 if (process.argv[2] === "--test") {
@@ -102,8 +111,8 @@ if (process.argv[2] === "--test") {
   assert.deepEqual(budgetFor(reset, new Date("2026-09-15T03:01:00Z")), { day: 1, budget: DAILY });
   assert.equal(budgetFor(reset, new Date("2026-09-19T18:00:00Z")).day, 5);
   assert.deepEqual(budgetFor(reset, new Date("2026-09-22T02:59:00Z")), { day: 7, budget: 100 });
-  assert.equal(statusText({ percent: 70, budget: 100 }), `${LIMIT_NAME} 30% left today`);
-  assert.equal(statusText({ percent: 30, budget: 28.6 }), `\x1b[31m${LIMIT_NAME} 1% over today\x1b[0m`);
+  assert.equal(statusText("Fable", { percent: 70, budget: 100 }), "Fable 30% left today");
+  assert.equal(statusText("All", { percent: 30, budget: 28.6 }), "\x1b[31mAll 1% over today\x1b[0m");
   console.log("ok");
 } else {
   // fail open: a broken hook must not lock Claude out
