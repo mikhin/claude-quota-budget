@@ -1,0 +1,12 @@
+{
+  "name": "quota-budget",
+  "version": "0.1.0",
+  "description": "Paces a weekly model quota at 1/7 per day",
+  "author": {
+    "name": "Yuri Mikhin",
+    "url": "https://github.com/mikhin"
+  },
+  "homepage": "https://github.com/mikhin/claude-quota-budget",
+  "repository": "https://github.com/mikhin/claude-quota-budget",
+  "license": "MIT"
+}

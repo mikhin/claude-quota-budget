@@ -11,22 +11,13 @@ Fable: 80% of the week spent, budget for day 5/7 is 71%. Switch: /model opus
 
 ## Install
 
-```sh
-curl -o ~/.claude/hooks/quota-budget.mjs \
-  https://raw.githubusercontent.com/mikhin/claude-quota-budget/main/quota-budget.mjs
+```
+/plugin marketplace add mikhin/claude-plugins
+/plugin install quota-budget@mikhin
 ```
 
-Then in `~/.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "node ~/.claude/hooks/quota-budget.mjs" }] }
-    ]
-  }
-}
-```
+Installed it with `curl` before? Remove its `UserPromptSubmit` entry from `~/.claude/settings.json`,
+or it runs twice. The `statusLine` entry stays.
 
 Needs Node 18+ and macOS (the OAuth token is read from the Keychain).
 
@@ -62,6 +53,13 @@ Fable 5% over today · All 3% left today
 ```
 
 Only `BUDGET_LIMIT` blocks; the all-models figure is shown, not enforced.
+
+A plugin cannot set the status line, so it needs its own copy of the script:
+
+```sh
+curl -o ~/.claude/hooks/quota-budget.mjs \
+  https://raw.githubusercontent.com/mikhin/claude-quota-budget/main/quota-budget.mjs
+```
 
 ```json
 { "statusLine": { "type": "command", "command": "node ~/.claude/hooks/quota-budget.mjs --status" } }
