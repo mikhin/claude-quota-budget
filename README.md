@@ -39,6 +39,10 @@ minutes in `~/.cache/claude-quota-budget.json`), find the weekly limit named `BU
 compare its `percent` against `day × BUDGET_DAILY`, where `day` is 1..7 derived from `resets_at`.
 Over budget exits `2`, which is how a `UserPromptSubmit` hook blocks the prompt.
 
+The hook input carries no model, so the current model is the one that wrote the last reply in the
+transcript; before the first reply it is `model` from `~/.claude/settings.json`. The first prompt
+after `/model` still counts against the previous model.
+
 Day 3 of the week means 43% is fine and 60% is not — the block is on the pace, not the total.
 
 ## Status line

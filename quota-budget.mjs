@@ -20,8 +20,20 @@ async function readStdin() {
   return text;
 }
 
+// the hook input has no model: the last reply in the transcript names it, settings cover the first prompt
+const lastReplyModel = (transcript) =>
+  transcript
+    .split("\n")
+    .reverse()
+    .map((line) => line.match(/"model":"(claude-[^"]+)"/)?.[1])
+    .find(Boolean);
+
 function currentModel(input) {
   if (input.model) return input.model;
+  try {
+    const model = lastReplyModel(readFileSync(input.transcript_path, "utf8"));
+    if (model) return model;
+  } catch {}
   const settings = JSON.parse(readFileSync(join(homedir(), ".claude/settings.json"), "utf8"));
   return settings.model ?? "";
 }
@@ -113,6 +125,14 @@ if (process.argv[2] === "--test") {
   assert.deepEqual(budgetFor(reset, new Date("2026-09-22T02:59:00Z")), { day: 7, budget: 100 });
   assert.equal(statusText("Fable", { percent: 70, budget: 100 }), "Fable 30% left today");
   assert.equal(statusText("All", { percent: 30, budget: 28.6 }), "\x1b[31mAll 1% over today\x1b[0m");
+  const transcript = [
+    '{"type":"assistant","message":{"model":"claude-opus-5-5"}}',
+    '{"type":"assistant","message":{"model":"claude-fable-5-1"}}',
+    '{"type":"assistant","message":{"model":"<synthetic>"}}',
+    '{"type":"user","message":{"content":"hi"}}',
+  ].join("\n");
+  assert.equal(lastReplyModel(transcript), "claude-fable-5-1");
+  assert.equal(lastReplyModel('{"type":"user"}'), undefined);
   console.log("ok");
 } else {
   // fail open: a broken hook must not lock Claude out
